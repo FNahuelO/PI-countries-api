@@ -1,5 +1,8 @@
 const { Country, Actividad } = require('../db.js')
+const Stripe = require('stripe')
+const { SECRET_APIKEY } = process.env
 
+const stripe = new Stripe(SECRET_APIKEY)
 
 const postActivity = async(req, res) => {
     const { name, dificultad, duracion, temporada} = req.body[0]
@@ -30,7 +33,28 @@ const getActivities = async (req, res) => {
     }
 }
 
+const checkout = async (req, res) => {
+    try {
+        const obj = req.body
+        console.log(obj)
+        const payment = await stripe.paymentIntents.create({
+            amount: obj.amount,
+            currency: "USD",
+            description: obj.description,
+            payment_method: obj.id,
+            confirm: true
+        })
+    
+        console.log(payment)
+    
+        res.send("Succesfull payment")
+    } catch (error) {
+        res.send({message: error.raw.message})
+    }
+}
+
 module.exports = {
     postActivity,
-    getActivities
+    getActivities,
+    checkout
 }
